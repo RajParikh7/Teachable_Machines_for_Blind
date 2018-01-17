@@ -166,7 +166,7 @@ var Main = function () {
               if (exampleCount[i] > 0) {
                 _this2.infoTexts[i].innerText = ' ' + exampleCount[i] + ' examples - ' + res.confidences[i] * 100 + '%';
               }
-/* 			  if(res.confidences[0]<0.51 && res.confidences[1]<0.51 && res.confidences[2]<0.51){
+ 			  if(res.confidences[0]<0.51 && res.confidences[1]<0.51 && res.confidences[2]<0.51){
 				  _this2.infoTexts[3].innerText = "I'm not very sure about this,can you add more images of this to the respective training class"
 			  }
 			  else if(res.confidences[0]>res.confidences[1] && res.confidences[0]>res.confidences[2]){
@@ -177,7 +177,7 @@ var Main = function () {
 			  }
 			  else{
 				  _this2.infoTexts[3].innerText ="It is "+ _this2.labels[2]
-			  } */
+			  } 
 			  
             }
           })
