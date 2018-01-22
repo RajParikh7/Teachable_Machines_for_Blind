@@ -26,7 +26,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // Number of classes to classify
 var NUM_CLASSES = 3;
 // Webcam Image size. Must be 227. 
-var IMAGE_SIZE = 500;
+var IMAGE_SIZE = 227;
 // K value for KNN
 var TOPK = 10;
 var audio = document.getElementById('audiorecorder');
@@ -64,7 +64,7 @@ var Main = function () {
 
       // Create training button
       var button = document.getElementById('button'+i);
-      //button.innerText = "Train " + i;
+      button.innerText = "Train " + i;
 	  
       // Listen for mouse events when clicking the button
       button.addEventListener('mousedown', function () {
@@ -114,8 +114,8 @@ var Main = function () {
     // Setup webcam
     navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(function (stream) {
       _this.video.srcObject = stream;
-      //_this.video.width = IMAGE_SIZE;
-      //_this.video.height = IMAGE_SIZE;
+      _this.video.width = IMAGE_SIZE;
+      _this.video.height = IMAGE_SIZE;
 
       _this.video.addEventListener('playing', function () {
         return _this.videoPlaying = true;
