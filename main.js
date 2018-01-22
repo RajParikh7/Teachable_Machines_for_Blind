@@ -26,9 +26,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // Number of classes to classify
 var NUM_CLASSES = 3;
 // Webcam Image size. Must be 227. 
-var IMAGE_SIZE = 227;
+var IMAGE_SIZE = 500;
 // K value for KNN
 var TOPK = 10;
+var audio = document.getElementById('audiorecorder');
+var source = document.getElementById('audioplay');
 
 var Main = function () {
   function Main() {
@@ -41,17 +43,17 @@ var Main = function () {
 	this.labels = [];
     this.training = -1; // -1 when no class is being trained
     this.videoPlaying = false;
-
+	this.training = -1;
     // Initiate deeplearn.js math and knn classifier objects
     this.knn = new _deeplearnKnnImageClassifier.KNNImageClassifier(NUM_CLASSES, TOPK, _deeplearn.ENV.math);
 
     // Create video element that will contain the webcam image
-    this.video = document.createElement('video');
+    this.video = document.getElementById('video1');
     this.video.setAttribute('autoplay', '');
     this.video.setAttribute('playsinline', '');
 
     // Add video element to DOM
-    document.body.appendChild(this.video);
+    //document.body.appendChild(this.video);
 
     // Create training buttons and info texts    
 
@@ -62,7 +64,7 @@ var Main = function () {
 
       // Create training button
       var button = document.getElementById('button'+i);
-      button.innerText = "Train " + i;
+      //button.innerText = "Train " + i;
 	  
       // Listen for mouse events when clicking the button
       button.addEventListener('mousedown', function () {
@@ -77,11 +79,20 @@ var Main = function () {
       _this.infoTexts.push(infoText);
 	  
     };
-	var infoText=document.getElementById('text3');
-	_this.infoTexts.push(infoText);
+	//var infoText=document.getElementById('text3');
+	//_this.infoTexts.push(infoText);
     for (var i = 0; i < NUM_CLASSES; i++) {
       _loop(i);
     }
+	var button = document.getElementById('testing');
+	button.addEventListener('mousedown', function () {
+        return _this.testing = 1;
+      });
+      button.addEventListener('mouseup', function () {
+        return _this.testing = -1;
+      });
+
+	
 	var button1= document.getElementById('label0');
 	var button2= document.getElementById('label1');
 	var button3= document.getElementById('label2');
@@ -103,8 +114,8 @@ var Main = function () {
     // Setup webcam
     navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(function (stream) {
       _this.video.srcObject = stream;
-      _this.video.width = IMAGE_SIZE;
-      _this.video.height = IMAGE_SIZE;
+      //_this.video.width = IMAGE_SIZE;
+      //_this.video.height = IMAGE_SIZE;
 
       _this.video.addEventListener('playing', function () {
         return _this.videoPlaying = true;
@@ -149,7 +160,7 @@ var Main = function () {
           // Add current image to classifier
           this.knn.addImage(image, this.training);
         }
-
+		
         // If any examples have been added, run predict
         var exampleCount = this.knn.getClassExampleCount();
         if (Math.max.apply(Math, _toConsumableArray(exampleCount)) > 0) {
@@ -166,18 +177,29 @@ var Main = function () {
               if (exampleCount[i] > 0) {
                 _this2.infoTexts[i].innerText = ' ' + exampleCount[i] + ' examples - ' + res.confidences[i] * 100 + '%';
               }
+			  if(_this2.testing==1){
  			  if(res.confidences[0]<0.51 && res.confidences[1]<0.51 && res.confidences[2]<0.51){
 				  _this2.infoTexts[3].innerText = "I'm not very sure about this,can you add more images of this to the respective training class"
+				
 			  }
 			  else if(res.confidences[0]>res.confidences[1] && res.confidences[0]>res.confidences[2]){
-				  _this2.infoTexts[3].innerText ="It is "+ _this2.labels[0]
+				  //_this2.infoTexts[3].innerText ="It is "+ _this2.labels[0];
+				  source.src = "audio0.wav";
+				  audio.load();
+				  audio.play();
 			  }
 			  else if(res.confidences[1]>res.confidences[0] && res.confidences[1]>res.confidences[2]){
-				  _this2.infoTexts[3].innerText ="It is "+ _this2.labels[1]
+				  //_this2.infoTexts[3].innerText ="It is "+ _this2.labels[1]
+				  source.src = "audio1.wav";
+				  audio.load();
+				  audio.play();
 			  }
 			  else{
-				  _this2.infoTexts[3].innerText ="It is "+ _this2.labels[2]
-			  } 
+				 // _this2.infoTexts[3].innerText ="It is "+ _this2.labels[2]
+				  source.src = "audio2.wav";
+				  audio.load();
+				  audio.play();
+			} }
 			  
             }
           })
