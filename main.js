@@ -15,6 +15,133 @@ var _createClass = function () { function defineProperties(target, props) { for 
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+
+var mediaSource = new MediaSource();
+mediaSource.addEventListener('sourceopen', handleSourceOpen, false);
+var mediaRecorder;
+var recordedBlobs;
+var sourceBuffer;
+
+
+var recordButton = document.querySelector('button#record');
+
+var downloadButton = document.querySelector('button#download');
+recordButton.onclick = toggleRecording;
+downloadButton.onclick = download;
+
+// window.isSecureContext could be used for Chrome
+
+
+var constraints = {
+  audio: true,
+  video: true
+};
+
+function handleSuccess(stream) {
+  recordButton.disabled = false;
+  console.log('getUserMedia() got stream: ', stream);
+  window.stream = stream;
+  gumVideo.srcObject = stream;
+}
+
+function handleError(error) {
+  console.log('navigator.getUserMedia error: ', error);
+}
+
+navigator.mediaDevices.getUserMedia(constraints).
+    then(handleSuccess).catch(handleError);
+
+function handleSourceOpen(event) {
+  console.log('MediaSource opened');
+  sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8"');
+  console.log('Source buffer: ', sourceBuffer);
+}
+
+
+
+function handleDataAvailable(event) {
+  if (event.data && event.data.size > 0) {
+    recordedBlobs.push(event.data);
+  }
+}
+
+function handleStop(event) {
+  console.log('Recorder stopped: ', event);
+}
+
+function toggleRecording() {
+  if (recordButton.textContent === 'Start Recording') {
+    startRecording();
+  } else {
+    stopRecording();
+    recordButton.textContent = 'Start Recording';
+    downloadButton.disabled = false;
+  }
+}
+
+function startRecording() {
+  recordedBlobs = [];
+  var options = {mimeType: 'video/webm;codecs=vp9'};
+  if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+    console.log(options.mimeType + ' is not Supported');
+    options = {mimeType: 'video/webm;codecs=vp8'};
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      console.log(options.mimeType + ' is not Supported');
+      options = {mimeType: 'video/webm'};
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        console.log(options.mimeType + ' is not Supported');
+        options = {mimeType: ''};
+      }
+    }
+  }
+  try {
+    mediaRecorder = new MediaRecorder(window.stream, options);
+  } catch (e) {
+    console.error('Exception while creating MediaRecorder: ' + e);
+    alert('Exception while creating MediaRecorder: '
+      + e + '. mimeType: ' + options.mimeType);
+    return;
+  }
+  console.log('Created MediaRecorder', mediaRecorder, 'with options', options);
+  recordButton.textContent = 'Stop Recording';
+
+  downloadButton.disabled = true;
+  mediaRecorder.onstop = handleStop;
+  mediaRecorder.ondataavailable = handleDataAvailable;
+  mediaRecorder.start(10); // collect 10ms of data
+  console.log('MediaRecorder started', mediaRecorder);
+}
+
+function stopRecording() {
+  mediaRecorder.stop();
+  console.log('Recorded Blobs: ', recordedBlobs);
+}
+
+function play() {
+  var superBuffer = new Blob(recordedBlobs, {type: 'video/webm'});
+  // workaround for non-seekable video taken from
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=642012#c23
+  
+}
+
+function download() {
+  var blob = new Blob(recordedBlobs, {type: 'video/webm'});
+  var url = window.URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  a.download = 'test.webm';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function() {
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }, 100);
+}
+
+
+
 var _deeplearnKnnImageClassifier = require('deeplearn-knn-image-classifier');
 
 var _deeplearn = require('deeplearn');
@@ -40,7 +167,9 @@ var Main = function () {
 
     // Initiate variables
     this.infoTexts = [];
+	this.meters=[];
 	this.labels = [];
+	this.audiotext=[];
     this.training = -1; // -1 when no class is being trained
     this.videoPlaying = false;
 	this.training = -1;
@@ -61,10 +190,9 @@ var Main = function () {
       var div = document.createElement('div');
       document.body.appendChild(div);
       div.style.marginBottom = '10px';
-
+		
       // Create training button
       var button = document.getElementById('button'+i);
-      button.innerText = "Train " + i;
 	  
       // Listen for mouse events when clicking the button
       button.addEventListener('mousedown', function () {
@@ -77,7 +205,10 @@ var Main = function () {
       // Create info text
       var infoText = document.getElementById('text'+i);
       _this.infoTexts.push(infoText);
-	  
+      var meters = document.getElementById('meter'+(i+1));
+      _this.meters.push(meters);
+	  var audiotext = document.getElementById("audiotext"+(i+1))
+		_this.audiotext.push(audiotext)
     };
 	//var infoText=document.getElementById('text3');
 	//_this.infoTexts.push(infoText);
@@ -93,24 +224,7 @@ var Main = function () {
       });
 
 	
-	var button1= document.getElementById('label0');
-	var button2= document.getElementById('label1');
-	var button3= document.getElementById('label2');
-	button1.addEventListener('mousedown', function () {
-        var prompt0=prompt("Enter name for this class")
-		_this.labels.push(prompt0)
-		document.getElementById('label0').innerText=prompt0
-      });
-	 button2.addEventListener('mousedown', function () {
-        var prompt1=prompt("Enter name for this class")
-		_this.labels.push(prompt1)
-		document.getElementById('label1').innerText=prompt1
-      });
-	  button3.addEventListener('mousedown', function () {
-        var prompt2	=prompt("Enter name for this class")
-		_this.labels.push(prompt2)
-		document.getElementById('label2').innerText=prompt2
-      });
+	
     // Setup webcam
     navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(function (stream) {
       _this.video.srcObject = stream;
@@ -176,30 +290,54 @@ var Main = function () {
               // Update info text
               if (exampleCount[i] > 0) {
                 _this2.infoTexts[i].innerText = ' ' + exampleCount[i] + ' examples - ' + res.confidences[i] * 100 + '%';
+				_this2.meters[i].value=res.confidences[i]
               }
 			  if(_this2.testing==1){
  			  if(res.confidences[0]<0.51 && res.confidences[1]<0.51 && res.confidences[2]<0.51){
 				  _this2.infoTexts[3].innerText = "I'm not very sure about this,can you add more images of this to the respective training class"
-				
+				  
 			  }
 			  else if(res.confidences[0]>res.confidences[1] && res.confidences[0]>res.confidences[2]){
 				  //_this2.infoTexts[3].innerText ="It is "+ _this2.labels[0];
 				  source.src = "audio0.wav";
 				  audio.load();
 				  audio.play();
+				  _this2.audiotext[0].style.border="4px solid #2baa5e";
+				  document.getElementById("audio1").src="audio_green_on.png";
+				  setTimeout(changetoOriginal,6000);
+				  function changetoOriginal(){
+					  document.getElementById("audio1").src="audio_green.png";
+					  _this2.audiotext[0].style.border="4px solid #ededee";
+				  }
 			  }
 			  else if(res.confidences[1]>res.confidences[0] && res.confidences[1]>res.confidences[2]){
 				  //_this2.infoTexts[3].innerText ="It is "+ _this2.labels[1]
 				  source.src = "audio1.wav";
 				  audio.load();
 				  audio.play();
+				  _this2.audiotext[1].style.border="4px solid #c95ac5";
+				  document.getElementById("audio2").src="audio_purple_on.png";
+				  setTimeout(changetoOriginal,3000);
+				  function changetoOriginal(){
+					  document.getElementById("audio2").src="audio_purple.png";
+					  _this2.audiotext[1].style.border="4px solid #ededee";
+				  }
 			  }
 			  else{
 				 // _this2.infoTexts[3].innerText ="It is "+ _this2.labels[2]
 				  source.src = "audio2.wav";
 				  audio.load();
 				  audio.play();
-			} }
+				  _this2.audiotext[2].style.border="4px solid #dd4d31";
+				  document.getElementById("audio3").src="audio_orange_on.png";
+				  setTimeout(changetoOriginal,3000);
+				  function changetoOriginal(){
+					  document.getElementById("audio3").src="audio_orange.png";
+					  _this2.audiotext[2].style.border="4px solid #ededee";
+				  }
+			} 
+			
+			}
 			  
             }
           })

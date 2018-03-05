@@ -5,29 +5,49 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="av"> 
+<div id="av">
 <video id="video1"></video>
-<audio id="audiorecorder" controls="controls">
-<source id="audioplay" src=""></source>
-Your browser doesn't support audio
-</audio>
+
 <button id="testing">Test Image</button>
 </div>
 <div id="a">
+
+<p id="text0">Confidence</p>
+<meter id="meter1" min=0 max=1 value=0.0></meter>
 <button id="button0">Train green</button>
-<p id="text0">No training data is provided for this class</p>
-<button id="label0">Label this class-0</button>
-</div>
-<div id="b">
+<p id="text1">Confidence</p>
+<meter id="meter2" min=0 max=1 value=0.0></meter>
 <button id="button1">Train blue</button>
-<p id="text1">No training data is provided for this class</p>
-<button id="label1">Label this class-1</button>
-</div>	
-<div id="c">
+<p id="text2">Confidence</p>
+<meter id="meter3" min=0 max=1 value=0.0></meter>
 <button id="button2">Train Orange</button>
-<p id="text2">No training data is provided for this class</p>
-<button id="label2">Label this class-2</button>
+
 </div>
+<div id="output1">
+<audio id="audiorecorder">
+<source id="audioplay" src=""></source>
+Your browser doesn't support audio
+</audio>
+<img src="audio_green.png" id="audio1"></img>
+<p id="audiotext1">Audio1</p>
+<img src="audio_purple.png" id="audio2"></img>
+<p id="audiotext2">Audio2</p>
+<img src="audio_orange.png" id="audio3"></img>
+<p id="audiotext3">Audio3</p>
+</div>
+ <div id="container">
+    <div>
+      <button id="record" disabled>Start Recording</button>
+      <button id="download" disabled>Download</button>
+    </div>
+
+
+  </div>
+
+  <!-- include adapter for srcObject shim -->
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+
 <script src="main.js"></script>
+
 </body>
 </html>
